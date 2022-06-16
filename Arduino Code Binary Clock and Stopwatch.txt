@@ -1,0 +1,100 @@
+#define SR_COL 2
+#define SL_COL 3
+#define MR_COL 4
+#define ML_COL 5
+#define HR_COL 6
+#define HL_COL 7
+#define ROW_1 13
+#define ROW_2 12
+#define ROW_3 11
+#define ROW_4 10
+
+unsigned h = 0;
+unsigned m = 0;
+unsigned s = 0;
+
+unsigned long lastMillis = 0UL;
+
+void setup()
+{
+  pinMode(SR_COL, OUTPUT);
+  pinMode(SL_COL, OUTPUT);
+  pinMode(MR_COL, OUTPUT);
+  pinMode(ML_COL, OUTPUT);
+  pinMode(HR_COL, OUTPUT);
+  pinMode(HL_COL, OUTPUT);
+  pinMode(ROW_1,  OUTPUT);
+  pinMode(ROW_2,  OUTPUT);
+  pinMode(ROW_3,  OUTPUT);
+  pinMode(ROW_4,  OUTPUT);
+}
+
+void decimalToBinary(unsigned dec, unsigned *target_array)
+{
+  unsigned index = 0;
+ 
+  if(dec > 9)
+	dec = 9;
+ 
+  while (dec > 0)
+  {
+	target_array[index++] = dec % 2;
+	dec = dec / 2;
+  }
+}
+
+void displayColumn(unsigned column, unsigned *bin_array)
+{
+  digitalWrite(column, HIGH);
+
+  for(int i = 0; i < 4; i++)
+	digitalWrite(ROW_4 + i, bin_array[i]);
+
+  delay(2);
+  digitalWrite(column, LOW);
+}
+
+void displayValues(unsigned leftColumn, unsigned rightColumn, unsigned value)
+{
+  unsigned tens = value / 10;
+  unsigned ones = value - (tens * 10);
+
+  unsigned tens_binary[4] = {0,0,0,0};
+  unsigned ones_binary[4] = {0,0,0,0};
+
+  decimalToBinary(tens, tens_binary);
+  decimalToBinary(ones, ones_binary);
+
+  displayColumn(leftColumn, tens_binary);
+  displayColumn(rightColumn, ones_binary);
+}
+
+void loop()
+{
+  unsigned long currentMillis = millis();
+ 
+  if(currentMillis - lastMillis > 1000)
+  {
+	s++;
+    
+	if(s >= 60)
+	{
+  	m++;
+  	s = 0;
+ 	 
+  	if(m >= 60)
+  	{
+    	h++;
+    	m = 0;
+    	if(h >= 24)
+      	h = 0;
+  	}
+	}
+    
+	lastMillis = currentMillis;
+  }
+ 
+  displayValues(SL_COL, SR_COL, s);
+  displayValues(ML_COL, MR_COL, m);
+  displayValues(HL_COL, HR_COL, h);
+}
